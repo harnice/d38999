@@ -7,7 +7,7 @@ import json
 
 # Add parent directory to path to import d38999_specs
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from d38999_specs import d38999_specs
+from d38999_specs.d38999_specs import D38999Parser
 
 CURRENT_REV = 1
 
@@ -151,7 +151,7 @@ def write_attributes_json(rev_dir, part_number, part_info):
 
 
 def main():
-    parser = d38999_specs.D38999Parser()
+    parser = D38999Parser()
     
     for part_config in PART_CONFIGS:
         print(f"\n{'='*60}")
