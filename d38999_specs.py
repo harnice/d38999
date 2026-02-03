@@ -5,7 +5,7 @@ Parses MIL-DTL-38999 part numbers and returns detailed specifications
 
 import math
 from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 
 
 @dataclass
@@ -20,6 +20,10 @@ class Contact:
     current_rating: float  # Amperes
     crimp_tool: str  # Tool part number
     extraction_tool: str  # Extraction tool part number
+    
+    def to_dict(self) -> dict:
+        """Convert to dictionary for JSON serialization"""
+        return asdict(self)
 
 
 @dataclass
@@ -29,6 +33,10 @@ class Dimension:
     value: float  # mm
     tolerance: float  # mm
     reference: str  # Drawing reference
+    
+    def to_dict(self) -> dict:
+        """Convert to dictionary for JSON serialization"""
+        return asdict(self)
 
 
 @dataclass
@@ -44,6 +52,21 @@ class ConnectorSpecs:
     voltage_rating: Dict[str, float] = field(default_factory=dict)
     environmental_specs: Dict = field(default_factory=dict)
     mechanical_specs: Dict = field(default_factory=dict)
+    
+    def to_dict(self) -> dict:
+        """Convert to dictionary for JSON serialization"""
+        return {
+            'part_number': self.part_number,
+            'series': self.series,
+            'shell_size': self.shell_size,
+            'insert_arrangement': self.insert_arrangement,
+            'contacts': [contact.to_dict() for contact in self.contacts],
+            'dimensions': [dim.to_dict() for dim in self.dimensions],
+            'assembly_tooling': self.assembly_tooling,
+            'voltage_rating': self.voltage_rating,
+            'environmental_specs': self.environmental_specs,
+            'mechanical_specs': self.mechanical_specs
+        }
 
 
 class D38999Specs:
@@ -379,3 +402,9 @@ if __name__ == "__main__":
     print(f"First contact position: {specs.contacts[0].position}")
     print(f"Shell OD: {specs.dimensions[0].value} mm")
     print(f"Voltage rating (sea level): {specs.voltage_rating['sea_level_rms']} V")
+    
+    # Demonstrate JSON serialization
+    import json
+    print("\nJSON Serialization Example:")
+    json_data = specs.to_dict()
+    print(json.dumps(json_data, indent=2)[:500] + "...")  # Print first 500 chars

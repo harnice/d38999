@@ -138,7 +138,7 @@ def write_attributes_json(rev_dir, part_number, part_info):
     attributes = {
         "part_number": part_number,
         "revision": CURRENT_REV,
-        "parsed_info": part_info,
+        "parsed_info": part_info.to_dict(),
         "generated_date": datetime.now().isoformat(),
     }
 
