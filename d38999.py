@@ -6,11 +6,35 @@ import math
 import os
 import itertools
 import json
+import csv
+import subprocess
+from datetime import datetime
 from pathlib import Path
 
 # Configuration constants
 REVISION = 1
 RELEASE_STATUS = None  # None, 'Draft', 'Review', 'Released', 'Obsolete'
+
+# Revision history CSV columns
+REVISION_HISTORY_COLUMNS = [
+    "product",
+    "mfg",
+    "pn",
+    "desc",
+    "rev",
+    "status",
+    "releaseticket",
+    "library_repo",
+    "library_subpath",
+    "datestarted",
+    "datemodified",
+    "datereleased",
+    "git_hash_of_harnice_src",
+    "drawnby",
+    "checkedby",
+    "revisionupdates",
+    "affectedinstances"
+]
 
 class D38999PartNumber:
     # Series definitions
@@ -574,7 +598,7 @@ class D38999PartNumberGenerator:
         
         Args:
             root_dir: Root directory name. If None, creates directories at current level
-            include_subdirs: If True, create subdirectories for docs, drawings, etc.
+            include_subdirs: Deprecated - subdirs are no longer created
         
         Returns:
             Dictionary with statistics about created directories
@@ -597,10 +621,6 @@ class D38999PartNumberGenerator:
             'total': len(self.generated_parts)
         }
         
-        subdirs = []
-        if include_subdirs:
-            subdirs = ['drawings', 'specifications', 'test_reports', 'tooling', 'assembly']
-        
         for part in self.generated_parts:
             part_number = part.build_part_number()
             # Clean part number for directory name (replace / with -)
@@ -612,28 +632,32 @@ class D38999PartNumberGenerator:
             rev_dir = part_dir / rev_dir_name
             
             try:
-                if part_dir.exists() and rev_dir.exists():
-                    stats['already_existed'] += 1
-                else:
-                    # Create main part directory
-                    part_dir.mkdir(parents=True, exist_ok=True)
-                    
-                    # Create revision directory
-                    rev_dir.mkdir(parents=True, exist_ok=True)
+                # Track if this is a new part or existing
+                part_existed = part_dir.exists()
+                
+                # Create main part directory
+                part_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Manage revision history CSV
+                self._manage_revision_history(part, part_dir, dir_name)
+                
+                # Create or overwrite revision directory
+                rev_dir.mkdir(parents=True, exist_ok=True)
+                
+                # Create/overwrite attributes JSON file
+                self._create_attributes_json(part, rev_dir, dir_name)
+                
+                # Create/overwrite placeholder SVG file
+                self._create_placeholder_svg(rev_dir, dir_name)
+                
+                # Run harnice -r in the revision directory
+                self._run_harnice_render(rev_dir, part_number)
+                
+                # Update stats
+                if not part_existed:
                     stats['created'] += 1
-                    
-                    # Create subdirectories if requested (in revision directory)
-                    for subdir in subdirs:
-                        (rev_dir / subdir).mkdir(exist_ok=True)
-                    
-                    # Create attributes JSON file
-                    self._create_attributes_json(part, rev_dir, dir_name)
-                    
-                    # Create placeholder SVG file
-                    self._create_placeholder_svg(rev_dir, dir_name)
-                    
-                    # Create a README in the main part directory
-                    self._create_readme(part, part_dir)
+                else:
+                    stats['already_existed'] += 1
                     
             except Exception as e:
                 stats['failed'] += 1
@@ -650,8 +674,73 @@ class D38999PartNumberGenerator:
         print(f"  Directories created: {stats['created']}")
         print(f"  Already existed: {stats['already_existed']}")
         print(f"  Failed: {stats['failed']}")
+        print(f"\nHarnice rendering completed for all revision directories")
         
         return stats
+    
+    def _manage_revision_history(self, part, part_dir, dir_name):
+        """
+        Create or update revision history CSV file.
+        If revision exists, overwrite it. If not, append it.
+        """
+        part_number = part.build_part_number()
+        props = part.get_properties()
+        
+        # Revision history file path
+        rev_history_file = part_dir / f"{dir_name}-revision_history.csv"
+        
+        # Current date
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        # Prepare revision data
+        revision_data = {
+            "product": "connector",
+            "mfg": "Glenair",
+            "pn": part_number,
+            "desc": f"{props['series_description']}, {props.get('contact_count', 'N/A')} contacts, {props.get('finish', 'N/A')}",
+            "rev": str(self.revision),
+            "status": self.release_status if self.release_status else "",
+            "releaseticket": "",
+            "library_repo": "",  # Auto-filled on render
+            "library_subpath": "Connector",
+            "datestarted": today,
+            "datemodified": today,
+            "datereleased": "",
+            "git_hash_of_harnice_src": "",  # Auto-filled on render
+            "drawnby": "",
+            "checkedby": "",
+            "revisionupdates": f"Initial creation of {part_number} connector",
+            "affectedinstances": ""
+        }
+        
+        # Read existing revision history if it exists
+        existing_revisions = []
+        revision_exists = False
+        
+        if rev_history_file.exists():
+            with open(rev_history_file, 'r', newline='') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row['rev'] == str(self.revision):
+                        # Found existing revision, we'll overwrite it
+                        revision_exists = True
+                        # Keep datestarted from original if it exists
+                        if row.get('datestarted'):
+                            revision_data['datestarted'] = row['datestarted']
+                        existing_revisions.append(revision_data)
+                    else:
+                        # Keep other revisions as-is
+                        existing_revisions.append(row)
+        
+        # If revision doesn't exist, append it
+        if not revision_exists:
+            existing_revisions.append(revision_data)
+        
+        # Write the revision history file
+        with open(rev_history_file, 'w', newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=REVISION_HISTORY_COLUMNS)
+            writer.writeheader()
+            writer.writerows(existing_revisions)
     
     def _create_attributes_json(self, part, directory, dir_name):
         """Create JSON file with comprehensive part attributes"""
@@ -743,6 +832,13 @@ class D38999PartNumberGenerator:
                 'certificate_of_conformance': False,
                 'inspection_level': None
             },
+            'documentation': {
+                'drawings_path': None,
+                'specifications_path': None,
+                'test_reports_path': None,
+                'tooling_docs_path': None,
+                'assembly_instructions_path': None
+            },
             'notes': {
                 'general': f"D38999 Series {props['series']} connector per MIL-DTL-38999",
                 'assembly': "Requires appropriate crimp contacts and tooling",
@@ -752,13 +848,13 @@ class D38999PartNumberGenerator:
         }
         
         # Write JSON file
-        json_file = directory / f"{dir_name}-{self.revision}-attributes.json"
+        json_file = directory / f"{dir_name}-rev{self.revision}-attributes.json"
         with open(json_file, 'w') as f:
             json.dump(attributes, f, indent=2)
     
     def _create_placeholder_svg(self, directory, dir_name):
         """Create placeholder SVG file for future drawing"""
-        svg_file = directory / f"{dir_name}-{self.revision}-drawing.svg"
+        svg_file = directory / f"{dir_name}-rev{self.revision}-drawing.svg"
         
         placeholder_svg = f'''<?xml version="1.0" encoding="UTF-8"?>
 <svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
@@ -777,6 +873,30 @@ class D38999PartNumberGenerator:
         
         with open(svg_file, 'w') as f:
             f.write(placeholder_svg)
+    
+    def _run_harnice_render(self, rev_dir, part_number):
+        """Run harnice -r command in the revision directory"""
+        try:
+            # Change to revision directory and run harnice
+            result = subprocess.run(
+                ['harnice', '-r'],
+                cwd=rev_dir,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            if result.returncode == 0:
+                print(f"  ✓ Rendered {part_number}")
+            else:
+                print(f"  ✗ Harnice failed for {part_number}: {result.stderr}")
+                
+        except FileNotFoundError:
+            print(f"  ⚠ Harnice not found in PATH (skipping render for {part_number})")
+        except subprocess.TimeoutExpired:
+            print(f"  ⚠ Harnice timeout for {part_number}")
+        except Exception as e:
+            print(f"  ⚠ Error running harnice for {part_number}: {e}")
     
     def _create_readme(self, part, directory):
         """Create a README file with part specifications"""
@@ -838,14 +958,14 @@ class D38999PartNumberGenerator:
         for part in self.generated_parts:
             part_number = part.build_part_number()
             dir_name = part_number.replace('/', '-')
-            rev_dir_name = f"{dir_name}-{self.revision}"
+            rev_dir_name = f"{dir_name}-rev{self.revision}"
             
             # Check if this part has position data
             props = part.get_properties()
             if 'contact_positions' in props and populate_drawings:
                 try:
                     # Generate actual SVG with contact positions
-                    svg_file = output_path / dir_name / rev_dir_name / f"{dir_name}-{self.revision}-drawing.svg"
+                    svg_file = output_path / dir_name / rev_dir_name / f"{dir_name}-rev{self.revision}-drawing.svg"
                     part.generate_svg(str(svg_file))
                     generated += 1
                 except Exception as e:
@@ -1008,20 +1128,20 @@ if __name__ == "__main__":
     # Create generator instance
     generator = D38999PartNumberGenerator(revision=REVISION, release_status=RELEASE_STATUS)
     
-    # Define ranges for batch generation
-    series_codes = ['24', '26']  # Jam-nut receptacle and Plug
-    class_codes = ['F', 'W', 'K', 'Z']  # Different finishes
-    shell_codes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J']  # All shell sizes
-    insert_arrangements = ['A35', 'B35', 'C35']  # Sample arrangements
+    # Define ranges for batch generation - FOCUSED ON 26FA98** ONLY
+    series_codes = ['26']  # Plug only
+    class_codes = ['F']  # Electroless Nickel finish only
+    shell_codes = ['A']  # Shell size A (9) only
+    insert_arrangements = ['A98']  # 3 contacts, size #20
     contact_types = ['P', 'S']  # Pin and Socket
-    polarizations = ['N', 'A', 'B', 'C']  # Normal and alternates
+    polarizations = ['N', 'A', 'B', 'C', 'D', 'E']  # All polarization options
     
     # Generate all combinations
-    print("\nGenerating part numbers from ranges...")
-    print(f"  Series: {series_codes}")
-    print(f"  Classes: {class_codes}")
-    print(f"  Shell Codes: {shell_codes}")
-    print(f"  Insert Arrangements: {insert_arrangements}")
+    print("\nGenerating D38999/26FA98** part numbers...")
+    print(f"  Series: {series_codes} (Plug with accessory threads)")
+    print(f"  Classes: {class_codes} (Electroless Nickel)")
+    print(f"  Shell Codes: {shell_codes} (Size 9)")
+    print(f"  Insert Arrangements: {insert_arrangements} (3 contacts, #20)")
     print(f"  Contact Types: {contact_types}")
     print(f"  Polarizations: {polarizations}")
     
@@ -1044,15 +1164,14 @@ if __name__ == "__main__":
     print("Creating directories at current level...")
     print(f"Structure: PartNumber/PartNumber-Rev{REVISION}/")
     stats = generator.create_directories(
-        root_dir=None,  # None = create at current level, no nesting
-        include_subdirs=True
+        root_dir=None  # None = create at current level, no nesting
     )
     
     # Export catalog
     print("\n" + "="*70)
     print("EXPORTING CATALOG")
     print("="*70)
-    generator.export_catalog('d38999_catalog.csv')
+    generator.export_catalog('d38999_26FA98_catalog.csv')
     
     # Note about SVG generation
     print("\n" + "="*70)
@@ -1062,18 +1181,13 @@ if __name__ == "__main__":
     print("To populate with actual drawings, call:")
     print("  generator.generate_svgs(populate_drawings=True)")
     
-    # Example: Filter parts
+    # List all generated parts
     print("\n" + "="*70)
-    print("FILTERING EXAMPLE")
+    print("GENERATED PART NUMBERS")
     print("="*70)
-    print("\nFinding all Size 11 shell connectors with 13 contacts...")
-    filtered = generator.filter_parts(shell_size=11, contact_count=13)
-    print(f"Found {len(filtered)} matching parts:")
-    for part in filtered[:5]:  # Show first 5
+    for part in parts:
         props = part.get_properties()
-        print(f"  {props['part_number']} - {props['series_description']}")
-    if len(filtered) > 5:
-        print(f"  ... and {len(filtered) - 5} more")
+        print(f"  {props['part_number']} - {props['contact_gender']}, {props.get('polarization', 'N/A')}")
     
     print("\n" + "="*70)
     print("OPERATION COMPLETE")
@@ -1081,15 +1195,14 @@ if __name__ == "__main__":
     print(f"\nAll connector directories created at:")
     print(f"  {Path.cwd()}")
     print(f"\nDirectory structure:")
-    print(f"  PartNumber/")
-    print(f"    ├── PartNumber-{REVISION}/")
-    print(f"    │   ├── PartNumber-{REVISION}-attributes.json")
-    print(f"    │   ├── PartNumber-{REVISION}-drawing.svg (placeholder)")
-    print(f"    │   ├── drawings/")
-    print(f"    │   ├── specifications/")
-    print(f"    │   ├── test_reports/")
-    print(f"    │   ├── tooling/")
-    print(f"    │   └── assembly/")
-    print(f"    └── README.txt")
+    print(f"  D38999-26FA98[P/S][N/A/B/C/D/E]/")
+    print(f"    ├── D38999-26FA98**-revision_history.csv")
+    print(f"    └── D38999-26FA98**-rev{REVISION}/")
+    print(f"        ├── D38999-26FA98**-rev{REVISION}-attributes.json")
+    print(f"        └── D38999-26FA98**-rev{REVISION}-drawing.svg (placeholder)")
     print(f"\nTotal directories: {stats['created'] + stats['already_existed']}")
-    print(f"Catalog exported to: d38999_catalog.csv")
+    print(f"Catalog exported to: d38999_26FA98_catalog.csv")
+    print(f"\nRevision History:")
+    print(f"  - Each part has a revision_history.csv file")
+    print(f"  - Current revision ({REVISION}) tracked with dates and status")
+    print(f"  - Run again to update existing revisions or add new ones")
