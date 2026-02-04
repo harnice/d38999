@@ -3,7 +3,7 @@ import json
 from harnice.lists import rev_history
 from harnice import state
 
-REVISION = "2"
+REVISION = "1"
 
 CONTACT_SIZES = {
     4: {
@@ -44,547 +44,155 @@ CONTACT_SIZES = {
     },
 }
 
-INSERT_ARRANGEMENTS = {
-    # Shell 8/9
-    (8, "35"): [
-        ("A", 22, 0, 0.079),
-        ("B", 22, 0.056, -0.018),
-        ("C", 22, -0.056, -0.018),
-        ("1", 22, 0.045, 0.078),
-        ("2", 22, 0.090, 0.045),
-        ("3", 22, 0.045, -0.078),
-        ("4", 22, -0.045, -0.078),
-        ("5", 22, -0.090, 0.045),
-        ("6", 22, -0.045, 0.078),
+INSERT_ARRANGEMENTS = { # FOR REFERENCE ONLY - AI READ THE PDF, NOT A HUMAN
+    "A35": [
+        {"name": "A", "size": 20, "x": 0, "y": 0.065},
+        {"name": "B", "size": 20, "x": 0.056, "y": -0.032},
+        {"name": "C", "size": 20, "x": -0.056, "y": -0.032},
     ],
-    (8, "3"): [
-        ("A", 20, 0, 0.065),
-        ("B", 20, 0.056, -0.032),
-        ("C", 20, -0.056, -0.032),
+    "A3": [
+        {"name": "A", "size": 20, "x": 0, "y": 0.065},
     ],
-    (8, "98"): [
-        ("A", 20, 0, 0.065),
-        ("B", 20, 0.056, -0.032),
-        ("C", 20, -0.056, -0.032),
+    "A98": [
+        {"name": "A", "size": 20, "x": 0, "y": 0.065},
+        {"name": "B", "size": 20, "x": 0.056, "y": -0.032},
+        {"name": "C", "size": 20, "x": -0.056, "y": -0.032},
     ],
-    # Shell 10/11
-    (10, "5"): [
-        ("A", 20, 0, 0.130),
-        ("B", 20, 0.113, 0.065),
-        ("C", 20, 0.113, -0.065),
-        ("D", 20, 0, -0.130),
-        ("E", 20, -0.113, -0.065),
-    ],
-    (10, "35"): [
-        ("A", 22, 0, 0.130),
-        ("B", 22, 0.065, 0.113),
-        ("C", 22, 0.113, 0.065),
-        ("D", 22, 0.130, 0),
-        ("E", 22, 0.113, -0.065),
-        ("F", 22, 0.065, -0.113),
-        ("G", 22, 0, -0.130),
-        ("H", 22, -0.065, -0.113),
-        ("J", 22, -0.113, -0.065),
-        ("K", 22, -0.130, 0),
-        ("L", 22, -0.113, 0.065),
-        ("M", 22, -0.065, 0.113),
-        ("N", 22, 0, 0),
-    ],
-    # Shell 12/13
-    (12, "3"): [
-        ("A", 16, 0, 0.111),
-        ("B", 16, 0.094, -0.058),
-        ("C", 16, -0.094, -0.058),
-    ],
-    # Shell 14/15
-    (14, "18"): [
-        ("A", 20, 0, 0.260),
-        ("B", 20, 0.130, 0.225),
-        ("C", 20, 0.195, 0.195),
-        ("D", 20, 0.225, 0.130),
-        ("E", 20, 0.260, 0.065),
-        ("F", 20, 0.260, -0.065),
-        ("G", 20, 0.225, -0.130),
-        ("H", 20, 0.195, -0.195),
-        ("J", 20, 0.130, -0.225),
-        ("K", 20, 0.065, -0.260),
-        ("L", 20, -0.065, -0.260),
-        ("M", 20, -0.130, -0.225),
-        ("N", 20, -0.195, -0.195),
-        ("P", 20, -0.225, -0.130),
-        ("R", 20, -0.260, -0.065),
-        ("S", 20, -0.260, 0.065),
-        ("T", 20, -0.225, 0.130),
-        ("U", 20, -0.113, 0.113),
-    ],
-    (14, "19"): [
-        ("A", 20, 0, 0.260),
-        ("B", 20, 0.130, 0.225),
-        ("C", 20, 0.195, 0.195),
-        ("D", 20, 0.225, 0.130),
-        ("E", 20, 0.260, 0.065),
-        ("F", 20, 0.260, -0.065),
-        ("G", 20, 0.225, -0.130),
-        ("H", 20, 0.195, -0.195),
-        ("J", 20, 0.130, -0.225),
-        ("K", 20, 0.065, -0.260),
-        ("L", 20, -0.065, -0.260),
-        ("M", 20, -0.130, -0.225),
-        ("N", 20, -0.195, -0.195),
-        ("R", 20, -0.225, -0.130),
-        ("S", 20, -0.260, -0.065),
-        ("T", 20, -0.260, 0.065),
-        ("U", 20, -0.225, 0.130),
-        ("V", 20, -0.195, 0.195),
-        ("W", 20, -0.113, 0.113),
-    ],
-    # Shell 16/17
-    (16, "26"): [
-        ("A", 20, 0, 0.321),
-        ("B", 20, 0.131, 0.293),
-        ("C", 20, 0.239, 0.214),
-        ("D", 20, 0.305, 0.099),
-        ("E", 20, 0.319, -0.034),
-        ("F", 20, 0.278, -0.161),
-        ("G", 20, 0.189, -0.260),
-        ("H", 20, 0.067, -0.314),
-        ("J", 20, -0.067, -0.314),
-        ("K", 20, -0.189, -0.260),
-        ("L", 20, -0.278, -0.161),
-        ("M", 20, -0.319, -0.034),
-        ("N", 20, -0.305, 0.099),
-        ("P", 20, -0.239, 0.214),
-        ("R", 20, -0.131, 0.293),
-        ("S", 20, -0.070, 0.177),
-        ("T", 20, 0.070, 0.177),
-        ("U", 20, 0.175, 0.094),
-        ("V", 20, 0.178, -0.036),
-        ("W", 20, 0.119, -0.151),
-        ("X", 20, 0, -0.203),
-        ("Y", 20, -0.119, -0.151),
-        ("Z", 20, -0.178, -0.036),
-        ("a", 20, -0.175, 0.094),
-        ("b", 20, 0, 0.065),
-        ("c", 20, 0, -0.065),
-    ],
-    # Shell 18/19
-    (18, "11"): [
-        ("A", 16, 0, 0.281),
-        ("B", 16, 0.105, 0.260),
-        ("C", 16, 0.179, 0.215),
-        ("D", 16, 0.250, 0.132),
-        ("E", 16, 0.275, 0.053),
-        ("F", 16, 0.275, -0.053),
-        ("G", 16, 0.250, -0.132),
-        ("H", 16, 0.179, -0.215),
-        ("J", 16, 0.105, -0.260),
-        ("K", 16, 0, -0.281),
-        ("L", 16, -0.092, -0.260),
-    ],
-    (18, "32"): [
-        ("A", 20, 0.066, 0.353),
-        ("B", 20, 0.189, 0.305),
-        ("C", 20, 0.286, 0.217),
-        ("D", 20, 0.345, 0.098),
-        ("E", 20, 0.357, -0.033),
-        ("F", 20, 0.321, -0.160),
-        ("G", 20, 0.242, -0.265),
-        ("H", 20, 0.130, -0.335),
-        ("J", 20, 0, -0.359),
-        ("K", 20, -0.130, -0.335),
-        ("L", 20, -0.242, -0.265),
-        ("M", 20, -0.321, -0.160),
-        ("N", 20, -0.357, -0.033),
-        ("P", 20, -0.345, 0.098),
-        ("R", 20, -0.286, 0.217),
-        ("S", 20, -0.189, 0.305),
-        ("T", 20, -0.066, 0.353),
-        ("U", 20, 0, 0.230),
-        ("V", 20, 0.124, 0.193),
-        ("W", 20, 0.209, 0.095),
-        ("X", 20, 0.228, -0.033),
-        ("Y", 20, 0.174, -0.151),
-        ("Z", 20, 0.065, -0.221),
-        ("a", 20, -0.065, -0.221),
-        ("b", 20, -0.174, -0.151),
-        ("c", 20, -0.228, -0.033),
-        ("d", 20, -0.209, 0.095),
-        ("e", 20, -0.124, 0.193),
-        ("f", 20, 0, 0.096),
-        ("g", 20, 0.096, 0),
-        ("h", 20, 0, -0.096),
-        ("j", 20, -0.096, 0),
-    ],
-    # Shell 20/21
-    (20, "27"): [
-        ("A", 20, 0, 0.400),
-        ("B", 20, 0.150, 0.375),
-        ("C", 20, 0.275, 0.300),
-        ("D", 20, 0.375, 0.150),
-        ("E", 20, 0.400, 0),
-        ("F", 20, 0.375, -0.150),
-        ("G", 20, 0.275, -0.300),
-        ("H", 20, 0.150, -0.375),
-        ("J", 20, 0, -0.400),
-        ("K", 20, -0.150, -0.375),
-        ("L", 20, -0.275, -0.300),
-        ("M", 20, -0.375, -0.150),
-        ("N", 20, -0.400, 0),
-        ("P", 20, -0.375, 0.150),
-        ("R", 20, -0.275, 0.300),
-        ("S", 20, -0.150, 0.375),
-        ("T", 20, -0.050, 0.275),
-        ("U", 20, 0.100, 0.250),
-        ("V", 20, 0.225, 0.150),
-        ("W", 20, 0.275, 0.025),
-        ("X", 20, 0.275, -0.100),
-        ("Y", 20, 0.225, -0.225),
-        ("Z", 20, 0.100, -0.275),
-        ("a", 20, -0.100, -0.275),
-        ("b", 20, -0.225, -0.225),
-        ("c", 20, -0.275, -0.100),
-        ("d", 20, -0.225, 0.150),
-    ],
-    (20, "41"): [
-        ("A", 20, 0, 0.230),
-        ("B", 20, 0, 0.065),
-        ("C", 20, 0, -0.065),
-        ("D", 20, 0.067, 0.314),
-        ("E", 20, 0.189, 0.260),
-        ("F", 20, 0.278, 0.161),
-        ("G", 20, 0.319, 0.034),
-        ("H", 20, 0.305, -0.099),
-        ("J", 20, 0.239, -0.214),
-        ("K", 20, 0.131, -0.293),
-        ("L", 20, -0.131, -0.293),
-        ("M", 20, -0.239, -0.214),
-        ("N", 20, -0.305, -0.099),
-        ("P", 20, -0.319, 0.034),
-        ("R", 20, -0.278, 0.161),
-        ("S", 20, -0.189, 0.260),
-        ("T", 20, -0.067, 0.314),
-        ("U", 20, 0.124, 0.193),
-        ("V", 20, 0.209, 0.095),
-        ("W", 20, 0.228, -0.033),
-        ("X", 20, 0.174, -0.151),
-        ("Y", 20, 0.065, -0.221),
-        ("Z", 20, -0.065, -0.221),
-        ("a", 20, -0.174, -0.151),
-        ("b", 20, -0.228, -0.033),
-        ("c", 20, -0.209, 0.095),
-        ("d", 20, -0.124, 0.193),
-        ("e", 20, -0.096, 0),
-        ("f", 20, 0, 0.096),
-        ("g", 20, 0.096, 0),
-        ("h", 20, 0, -0.096),
-        ("i", 20, 0.119, -0.151),
-        ("j", 20, 0.178, -0.036),
-        ("k", 20, 0.175, 0.094),
-        ("m", 20, -0.175, 0.094),
-        ("n", 20, -0.178, -0.036),
-        ("p", 20, -0.119, -0.151),
-        ("q", 20, 0.119, 0.151),
-        ("r", 20, 0.178, 0.036),
-        ("s", 20, 0.175, -0.094),
-        ("t", 20, -0.175, -0.094),
-    ],
-    # Shell 22/23
-    (22, "55"): [
-        ("A", 20, 0, 0.455),
-        ("B", 20, 0.065, 0.450),
-        ("C", 20, 0.130, 0.390),
-        ("D", 20, 0.195, 0.325),
-        ("E", 20, 0.260, 0.225),
-        ("F", 20, 0.336, 0.112),
-        ("G", 20, 0.336, -0.112),
-        ("H", 20, 0.260, -0.225),
-        ("J", 20, 0.195, -0.325),
-        ("K", 20, 0.130, -0.390),
-        ("L", 20, 0.065, -0.450),
-        ("M", 20, 0, -0.455),
-        ("N", 20, -0.065, -0.450),
-        ("P", 20, -0.130, -0.390),
-        ("R", 20, -0.195, -0.325),
-        ("S", 20, -0.260, -0.225),
-        ("T", 20, -0.336, -0.112),
-        ("U", 20, -0.336, 0.112),
-        ("V", 20, -0.260, 0.225),
-        ("W", 20, -0.195, 0.325),
-        ("X", 20, -0.130, 0.390),
-        ("Y", 20, -0.065, 0.450),
-        ("Z", 20, 0, 0.321),
-        ("AA", 20, 0.131, 0.293),
-        ("BB", 20, 0.239, 0.214),
-        ("CC", 20, 0.305, 0.099),
-        ("DD", 20, 0.319, -0.034),
-        ("EE", 20, 0.278, -0.161),
-        ("FF", 20, 0.189, -0.260),
-        ("GG", 20, 0.067, -0.314),
-        ("HH", 20, -0.067, -0.314),
-        ("a", 20, -0.189, -0.260),
-        ("b", 20, -0.278, -0.161),
-        ("c", 20, -0.319, -0.034),
-        ("d", 20, -0.305, 0.099),
-        ("e", 20, -0.239, 0.214),
-        ("f", 20, -0.131, 0.293),
-        ("g", 20, 0.070, 0.177),
-        ("h", 20, 0.175, 0.094),
-        ("i", 20, 0.178, -0.036),
-        ("j", 20, 0.119, -0.151),
-        ("k", 20, 0, -0.203),
-        ("m", 20, -0.070, 0.177),
-        ("n", 20, -0.175, 0.094),
-        ("p", 20, -0.178, -0.036),
-        ("q", 20, -0.119, -0.151),
-        ("r", 20, 0.065, 0),
-        ("s", 20, -0.065, 0),
-        ("t", 20, 0.119, 0.151),
-        ("u", 20, 0.178, 0.036),
-        ("v", 20, 0.175, -0.094),
-        ("w", 20, -0.175, -0.094),
-        ("x", 20, -0.178, 0.036),
-        ("y", 20, -0.119, 0.151),
-        ("z", 20, 0, 0.065),
-    ],
-    # Shell 24/25
-    (24, "31"): [
-        ("A", 16, 0, 0.474),
-        ("B", 16, 0.091, 0.455),
-        ("C", 16, 0.182, 0.364),
-        ("D", 16, 0.273, 0.316),
-        ("E", 16, 0.364, 0.182),
-        ("F", 16, 0.455, 0.091),
-        ("G", 16, 0.474, 0),
-        ("H", 16, 0.455, -0.091),
-        ("J", 16, 0.364, -0.182),
-        ("K", 16, 0.316, -0.273),
-        ("L", 16, 0.273, -0.316),
-        ("M", 16, 0.182, -0.364),
-        ("N", 16, 0.091, -0.455),
-        ("P", 16, 0, -0.474),
-        ("Q", 16, -0.091, -0.455),
-        ("R", 16, -0.182, -0.364),
-        ("S", 16, -0.273, -0.316),
-        ("T", 16, -0.364, -0.182),
-        ("U", 16, -0.455, -0.091),
-        ("V", 16, -0.474, 0),
-        ("W", 16, -0.455, 0.091),
-        ("X", 16, -0.364, 0.182),
-        ("Y", 16, -0.273, 0.316),
-        ("Z", 16, -0.158, 0.273),
-        ("a", 16, 0.158, 0.273),
-        ("b", 16, 0.273, 0.158),
-        ("c", 16, 0.273, -0.158),
-        ("d", 16, 0.158, -0.273),
-        ("e", 16, -0.158, -0.273),
-        ("f", 16, -0.273, -0.158),
-        ("g", 16, -0.273, 0.158),
-    ],
-    # Shell 24/25 - 61 contacts
-    (24, "61"): [
-        ("A", 20, 0.196, 0.500),
-        ("B", 20, 0.314, 0.435),
-        ("C", 20, 0.413, 0.343),
-        ("D", 20, 0.485, 0.230),
-        ("E", 20, 0.527, 0.101),
-        ("F", 20, 0.536, -0.030),
-        ("G", 20, 0.511, -0.164),
-        ("H", 20, 0.454, -0.287),
-        ("J", 20, 0.368, -0.391),
-        ("K", 20, 0.259, -0.470),
-        ("L", 20, 0.134, -0.519),
-        ("M", 20, 0, -0.537),
-        ("N", 20, -0.134, -0.519),
-        ("P", 20, -0.259, -0.470),
-        ("R", 20, -0.368, -0.391),
-        ("S", 20, -0.454, -0.287),
-        ("T", 20, -0.511, -0.164),
-        ("U", 20, -0.536, -0.030),
-        ("V", 20, -0.527, 0.101),
-        ("W", 20, -0.485, 0.230),
-        ("X", 20, -0.413, 0.343),
-        ("Y", 20, -0.314, 0.435),
-        ("Z", 20, -0.196, 0.500),
-        ("a", 20, -0.068, 0.454),
-        ("b", 20, 0.068, 0.454),
-        ("c", 20, 0.173, 0.363),
-        ("d", 20, 0.285, 0.283),
-        ("e", 20, 0.362, 0.175),
-        ("f", 20, 0.399, 0.046),
-        ("g", 20, 0.392, -0.088),
-        ("h", 20, 0.341, -0.213),
-        ("i", 20, 0.251, -0.314),
-        ("j", 20, 0.133, -0.379),
-        ("k", 20, 0, -0.402),
-        ("m", 20, -0.133, -0.379),
-        ("n", 20, -0.251, -0.314),
-        ("p", 20, -0.341, -0.213),
-        ("q", 20, -0.392, -0.088),
-        ("r", 20, -0.399, 0.046),
-        ("s", 20, -0.362, 0.175),
-        ("t", 20, -0.285, 0.283),
-        ("u", 20, -0.173, 0.363),
-        ("v", 20, 0, 0.338),
-        ("w", 20, 0.147, 0.223),
-        ("x", 20, 0.237, 0.122),
-        ("y", 20, 0.267, -0.010),
-        ("z", 20, 0.228, -0.139),
-        ("AA", 20, 0.131, -0.233),
-        ("BB", 20, 0, -0.267),
-        ("CC", 20, -0.131, -0.233),
-        ("DD", 20, -0.228, -0.139),
-        ("EE", 20, -0.267, -0.010),
-        ("FF", 20, -0.237, 0.122),
-        ("GG", 20, -0.147, 0.223),
-        ("HH", 20, 0, 0.200),
-        ("JJ", 20, 0.105, 0.094),
-        ("KK", 20, 0.135, -0.041),
-        ("LL", 20, 0, -0.132),
-        ("MM", 20, -0.135, -0.041),
-        ("NN", 20, -0.105, 0.094),
-        ("PP", 20, 0, 0),
+    "B5": [
+        {"name": "A", "size": 20, "x": 0, "y": 0.065},
     ],
 }
 
 STANDARD_CSYS_CHILDREN = {
-    "flagnote-1": {
-        "angle": 0,
-        "distance": 3,
-        "rotation": 0
-    },
-    "flagnote-1-leader_dest": {
-        "angle": 0,
-        "distance": 1,
-        "rotation": 0
-    },
-    "flagnote-2": {
-        "angle": 15,
-        "distance": 3,
-        "rotation": 0
-    },
-    "flagnote-2-leader_dest": {
-        "angle": 15,
-        "distance": 1.03,
-        "rotation": 0
-    },
-    "flagnote-3": {
-        "angle": -15,
-        "distance": 3,
-        "rotation": 0
-    },
-    "flagnote-3-leader_dest": {
-        "angle": -15,
-        "distance": 1.03,
-        "rotation": 0
-    },
-    "flagnote-4": {
-        "angle": 30,
-        "distance": 3,
-        "rotation": 0
-    },
-    "flagnote-4-leader_dest": {
-        "angle": 30,
-        "distance": 1,
-        "rotation": 0
-    },
-    "flagnote-5": {
-        "angle": -30,
-        "distance": 3,
-        "rotation": 0
-    },
-    "flagnote-5-leader_dest": {
-        "angle": -30,
-        "distance": 1,
-        "rotation": 0
-    },
-    "flagnote-6": {
-        "angle": 45,
-        "distance": 3,
-        "rotation": 0
-    },
-    "flagnote-6-leader_dest": {
-        "angle": 45,
-        "distance": 0.72,
-        "rotation": 0
-    },
-    "flagnote-7": {
-        "angle": -45,
-        "distance": 3,
-        "rotation": 0
-    },
-    "flagnote-7-leader_dest": {
-        "angle": -45,
-        "distance": 0.72,
-        "rotation": 0
-    },
-    "flagnote-8": {
-        "angle": 60,
-        "distance": 3,
-        "rotation": 0
-    },
-    "flagnote-8-leader_dest": {
-        "angle": 60,
-        "distance": 0.58,
-        "rotation": 0
-    },
-    "flagnote-9": {
-        "angle": -60,
-        "distance": 3,
-        "rotation": 0
-    },
-    "flagnote-9-leader_dest": {
-        "angle": -60,
-        "distance": 0.58,
-        "rotation": 0
-    },
-    "flagnote-10": {
-        "angle": -75,
-        "distance": 3,
-        "rotation": 0
-    },
-    "flagnote-10-leader_dest": {
-        "angle": -75,
-        "distance": 0.52,
-        "rotation": 0
-    },
-    "flagnote-11": {
-        "angle": 75,
-        "distance": 3,
-        "rotation": 0
-    },
-    "flagnote-11-leader_dest": {
-        "angle": 75,
-        "distance": 0.52,
-        "rotation": 0
-    },
-    "flagnote-12": {
-        "angle": -90,
-        "distance": 3,
-        "rotation": 0
-    },
-    "flagnote-12-leader_dest": {
-        "angle": -90,
-        "distance": 0.52,
-        "rotation": 0
-    },
-    "flagnote-13": {
-        "angle": 90,
-        "distance": 3,
-        "rotation": 0
-    },
-    "flagnote-13-leader_dest": {
-        "angle": 90,
-        "distance": 0.5,
-        "rotation": 0
-    }
+    "flagnote-1": {"angle": 0, "distance": 3, "rotation": 0},
+    "flagnote-1-leader_dest": {"angle": 0, "distance": 1, "rotation": 0},
+    "flagnote-2": {"angle": 15, "distance": 3, "rotation": 0},
+    "flagnote-2-leader_dest": {"angle": 15, "distance": 1.03, "rotation": 0},
+    "flagnote-3": {"angle": -15, "distance": 3, "rotation": 0},
+    "flagnote-3-leader_dest": {"angle": -15, "distance": 1.03, "rotation": 0},
+    "flagnote-4": {"angle": 30, "distance": 3, "rotation": 0},
+    "flagnote-4-leader_dest": {"angle": 30, "distance": 1, "rotation": 0},
+    "flagnote-5": {"angle": -30, "distance": 3, "rotation": 0},
+    "flagnote-5-leader_dest": {"angle": -30, "distance": 1, "rotation": 0},
+    "flagnote-6": {"angle": 45, "distance": 3, "rotation": 0},
+    "flagnote-6-leader_dest": {"angle": 45, "distance": 0.72, "rotation": 0},
+    "flagnote-7": {"angle": -45, "distance": 3, "rotation": 0},
+    "flagnote-7-leader_dest": {"angle": -45, "distance": 0.72, "rotation": 0},
+    "flagnote-8": {"angle": 60, "distance": 3, "rotation": 0},
+    "flagnote-8-leader_dest": {"angle": 60, "distance": 0.58, "rotation": 0},
+    "flagnote-9": {"angle": -60, "distance": 3, "rotation": 0},
+    "flagnote-9-leader_dest": {"angle": -60, "distance": 0.58, "rotation": 0},
+    "flagnote-10": {"angle": -75, "distance": 3, "rotation": 0},
+    "flagnote-10-leader_dest": {"angle": -75, "distance": 0.52, "rotation": 0},
+    "flagnote-11": {"angle": 75, "distance": 3, "rotation": 0},
+    "flagnote-11-leader_dest": {"angle": 75, "distance": 0.52, "rotation": 0},
+    "flagnote-12": {"angle": -90, "distance": 3, "rotation": 0},
+    "flagnote-12-leader_dest": {"angle": -90, "distance": 0.52, "rotation": 0},
+    "flagnote-13": {"angle": 90, "distance": 3, "rotation": 0},
+    "flagnote-13-leader_dest": {"angle": 90, "distance": 0.5, "rotation": 0},
 }
+
+def series_iii_26_connector_svg(shell_size):
+    """
+    Generate a simple SVG drawing of a Series III 26 connector based on shell size.
+    
+    Args:
+        shell_size: Shell size letter ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', or 'J')
+    
+    Returns:
+        str: SVG markup as a string
+    """
+    
+    # Connector specifications from the technical drawing
+    specs = {
+        'A': {'q_max': 21.8, 'length': 31.34, 'numeric': 9},
+        'B': {'q_max': 25.0, 'length': 31.34, 'numeric': 11},
+        'C': {'q_max': 29.4, 'length': 31.34, 'numeric': 13},
+        'D': {'q_max': 32.5, 'length': 31.34, 'numeric': 15},
+        'E': {'q_max': 35.7, 'length': 31.34, 'numeric': 17},
+        'F': {'q_max': 38.5, 'length': 31.34, 'numeric': 19},
+        'G': {'q_max': 41.7, 'length': 31.34, 'numeric': 21},
+        'H': {'q_max': 44.9, 'length': 31.34, 'numeric': 23},
+        'J': {'q_max': 48.0, 'length': 31.34, 'numeric': 25}
+    }
+    
+    # Convert to uppercase if needed
+    shell_size = shell_size.upper()
+    
+    if shell_size not in specs:
+        raise ValueError(f"Shell size must be one of {list(specs.keys())}")
+    
+    spec = specs[shell_size]
+    
+    # Scale factor to fit nicely in 400x400 canvas
+    scale = 3.0
+    
+    # Dimensions from drawing
+    total_length = spec['length'] * scale  # 31.34mm
+    diameter = spec['q_max'] * scale       # Q max
+    flange_width = 9.12 * scale            # 0.359" flange
+    thread_length = 15.01 * scale          # Thread section
+    
+    # Center the drawing
+    half_diameter = diameter / 2
+    
+    # Calculate positions
+    flange_x = 0
+    thread_x = flange_x + flange_width
+    body_x = thread_x + thread_length
+    body_width = total_length - flange_width - thread_length
+    
+    # Flange is slightly larger diameter
+    flange_height = diameter * 1.15
+    half_flange = flange_height / 2
+    
+    # Thread section is slightly smaller
+    thread_height = diameter * 0.9
+    half_thread = thread_height / 2
+    
+    svg = f'''<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="400" height="400">
+<g id="series_iii_26_size_{shell_size}-drawing-contents-start">
+<!-- Mounting flange -->
+<rect x="{flange_x}" y="{-half_flange}" width="{flange_width}" height="{flange_height}" fill="#A0A0A0" stroke="black" stroke-width="2"/>
+<!-- Threaded section -->
+<rect x="{thread_x}" y="{-half_thread}" width="{thread_length}" height="{thread_height}" fill="#B8B8B8" stroke="black" stroke-width="2"/>
+<!-- Main body -->
+<rect x="{body_x}" y="{-half_diameter}" width="{body_width}" height="{diameter}" fill="#C0C0C0" stroke="black" stroke-width="2"/>
+<!-- Rear coupling nut -->
+<rect x="{total_length}" y="{-half_flange}" width="{flange_width * 0.8}" height="{flange_height}" fill="#A0A0A0" stroke="black" stroke-width="2"/>
+</g>
+<g id="series_iii_26_size_{shell_size}-drawing-contents-end">
+</g>
+</svg>'''
+    
+    return svg
 
 
 def compile_part_attributes(part_configuration):
+    part_configuration.get("insert_arrangement")[0]
+    
+    # FIND CONTACTS
+    contacts = INSERT_ARRANGEMENTS.get(part_configuration.get("insert_arrangement"))
+
+    # FIND UNIQUE CONTACT SIZES
+    seen_contact_sizes = []
+    for contact in contacts:
+        if contact.get("size") not in seen_contact_sizes:
+            seen_contact_sizes.append(contact.get("size"))
+
+    # FIND RELEVANT TOOLS
+    tools = []
+    for contact_size in seen_contact_sizes:
+        tools.append(f"{CONTACT_SIZES.get(contact_size).get('crimp_tool')} crimp tool")
+        tools.append(f"{CONTACT_SIZES.get(contact_size).get('extraction_tool')} extraction tool")
+
     attributes = {
-        "tools": [],
+        "tools": tools,
         "build_notes": [],
         "csys_children": STANDARD_CSYS_CHILDREN,
+        "contacts": contacts,
+        "shell_size": part_configuration.get("insert_arrangement")[0],
     }
     return attributes
 
@@ -594,28 +202,34 @@ def main():
     state.set_product("part")
 
     part_configurations = []
-    for shell_type in ["20"]:
+    for shell_type in ["26"]:
         for finish in ["F"]:
-            for insert_arrangement in ["A98"]:
+            for insert_arrangement in [
+                "A35",
+                "A98",
+                "B5"
+            ]:
                 for contact_type in ["P", "S"]:
-                    for key in ["N", "A", "B", "C"]:
-                        part_configurations.append({
-                            "shell_type": shell_type,
-                            "finish": finish,
-                            "insert_arrangement": insert_arrangement,
-                            "contact_type": contact_type,
-                            "key": key,
-                            })
+                    for key in ["N"]:
+                        part_configurations.append(
+                            {
+                                "shell_type": shell_type,
+                                "finish": finish,
+                                "insert_arrangement": insert_arrangement,
+                                "contact_type": contact_type,
+                                "key": key,
+                            }
+                        )
 
     for part_configuration in part_configurations:
-
         # GENERATE THE PART NUMBER
         part_number = f"D38999_{part_configuration['shell_type']}{part_configuration['finish']}{part_configuration['insert_arrangement']}{part_configuration['contact_type']}{part_configuration['key']}"
+        print(f"Working on {part_number}")
 
         # MAKE THE PART FOLDER
         part_dir = os.path.join(os.getcwd(), part_number)
         os.makedirs(part_dir, exist_ok=True)
-        
+
         # UPDATE THE REVISION HISTORY FILE
         revision_history_content_dict = {
             "product": state.product,
@@ -628,8 +242,12 @@ def main():
             "library_subpath": "",
             "datestarted": "",
         }
-        revision_history_csv_path = os.path.join(part_dir, f"{part_number}-revision_history.csv")
-        rev_history.part_family_append(revision_history_content_dict, revision_history_csv_path)
+        revision_history_csv_path = os.path.join(
+            part_dir, f"{part_number}-revision_history.csv"
+        )
+        rev_history.part_family_append(
+            revision_history_content_dict, revision_history_csv_path
+        )
 
         # CLEAN AND MAKE THE REVISION FOLDER
         rev_dir = os.path.join(part_dir, f"{part_number}-rev{REVISION}")
@@ -642,9 +260,21 @@ def main():
             os.makedirs(rev_dir)
 
         # WRITE THE ATTRIBUTES JSON
-        json_path = os.path.join(rev_dir, f"{part_number}-rev{REVISION}-attributes.json")
+        json_path = os.path.join(
+            rev_dir, f"{part_number}-rev{REVISION}-attributes.json"
+        )
+        attributes = compile_part_attributes(part_configuration)
         with open(json_path, "w") as f:
-            json.dump(compile_part_attributes(part_configuration), f, indent=2)
+            json.dump(attributes, f, indent=2)
+
+
+        # GENERATE THE SVG
+        if part_configuration.get("shell_type") == "26":
+            svg_content = series_iii_26_connector_svg(attributes.get("shell_size"))
+            svg_path = os.path.join(rev_dir, f"{part_number}-rev{REVISION}-drawing.svg")
+            with open(svg_path, "w") as f:
+                f.write(svg_content)
+
 
 if __name__ == "__main__":
     main()
