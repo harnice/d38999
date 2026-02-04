@@ -1578,6 +1578,8 @@ def main():
             "desc": "",
             "status": "",
             "datestarted": DATE_STARTED,
+            "library_repo": "https://github.com/harnice/d38999",
+            "library_subpath": "Connector"
         }
         revision_history_csv_path = os.path.join(
             part_dir, f"{part_number}-revision_history.tsv"
