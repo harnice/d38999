@@ -1458,10 +1458,36 @@ def series_iii_26_connector_svg(part_number, shell_size):
 
 
 def compile_part_attributes(part_configuration):
-    part_configuration.get("insert_arrangement")[0]
+    pn_arrangement = part_configuration.get("insert_arrangement")
+    pn_arrangement_prefix = pn_arrangement[0]
+    pn_arrangement_suffix = pn_arrangement[1:]
+
+    if pn_arrangement_prefix == "A":
+        shell_size = "9"
+    elif pn_arrangement_prefix == "B":
+        shell_size = "11"
+    elif pn_arrangement_prefix == "C":
+        shell_size = "13"
+    elif pn_arrangement_prefix == "D":
+        shell_size = "15"
+    elif pn_arrangement_prefix == "E":
+        shell_size = "17"
+    elif pn_arrangement_prefix == "F":
+        shell_size = "19"
+    elif pn_arrangement_prefix == "G":
+        shell_size = "21"
+    elif pn_arrangement_prefix == "H":
+        shell_size = "23"
+    elif pn_arrangement_prefix == "J":
+        shell_size = "25"
+
+    else:
+        raise ValueError(f"Invalid insert arrangement prefix: {pn_arrangement_prefix}")
+
+    insert_arrangement = f"{shell_size}-{pn_arrangement_suffix}"
     
     # FIND CONTACTS
-    contacts = INSERT_ARRANGEMENTS.get(part_configuration.get("insert_arrangement"))
+    contacts = INSERT_ARRANGEMENTS.get(insert_arrangement)
 
     # FIND UNIQUE CONTACT SIZES
     seen_contact_sizes = []
@@ -1491,14 +1517,39 @@ def main():
 
     part_configurations = []
     for shell_type in ["26"]:
-        for finish in ["F"]:
+        for finish in ["F", "K", "W", "Z"]:
             for insert_arrangement in [
                 "A35",
                 "A98",
-                "B5"
+                "B5",
+                "B35",
+                "B99",
+                "C35",
+                "C98",
+                "D5",
+                "D19",
+                "D35",
+                "E6",
+                "E8",
+                "E26",
+                "E35",
+                "F11",
+                "F32",
+                "F35",
+                "G11",
+                "G16",
+                "G35",
+                "G41",
+                "H21",
+                "H35",
+                "H55",
+                "J19",
+                "J29",
+                "J35",
+                "J61",
             ]:
                 for contact_type in ["P", "S"]:
-                    for key in ["N"]:
+                    for key in ["N", "A", "B", "C"]:
                         part_configurations.append(
                             {
                                 "shell_type": shell_type,
@@ -1512,6 +1563,7 @@ def main():
     for part_configuration in part_configurations:
         # GENERATE THE PART NUMBER
         part_number = f"D38999_{part_configuration['shell_type']}{part_configuration['finish']}{part_configuration['insert_arrangement']}{part_configuration['contact_type']}{part_configuration['key']}"
+        print("Preparing part number: ", part_number)
 
         # MAKE THE PART FOLDER
         part_dir = os.path.join(os.getcwd(), part_number)
@@ -1564,6 +1616,7 @@ def main():
         # RENDER THE PART
         subprocess.run(['harnice', '-r'], cwd=rev_dir, check=True)
 
+    print("Finished rendering all parts in family.")
 
 if __name__ == "__main__":
     main()
