@@ -1,9 +1,12 @@
 import os
 import json
+import subprocess
 from harnice.lists import rev_history
 from harnice import state
+import harnice.products.part as part
 
 REVISION = "1"
+DATE_STARTED = "2/3/26"
 
 CONTACT_SIZES = {
     4: {
@@ -92,11 +95,12 @@ STANDARD_CSYS_CHILDREN = {
     "flagnote-13-leader_dest": {"angle": 90, "distance": 0.5, "rotation": 0},
 }
 
-def series_iii_26_connector_svg(shell_size):
+def series_iii_26_connector_svg(part_number, shell_size):
     """
     Generate a simple SVG drawing of a Series III 26 connector based on shell size.
     
     Args:
+        part_number: Part number string for the connector
         shell_size: Shell size letter ('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', or 'J')
     
     Returns:
@@ -116,53 +120,25 @@ def series_iii_26_connector_svg(shell_size):
         'J': {'q_max': 48.0, 'length': 31.34, 'numeric': 25}
     }
     
-    # Convert to uppercase if needed
-    shell_size = shell_size.upper()
-    
     if shell_size not in specs:
         raise ValueError(f"Shell size must be one of {list(specs.keys())}")
     
     spec = specs[shell_size]
     
-    # Scale factor to fit nicely in 400x400 canvas
+    # Scale factor
     scale = 3.0
     
-    # Dimensions from drawing
-    total_length = spec['length'] * scale  # 31.34mm
-    diameter = spec['q_max'] * scale       # Q max
-    flange_width = 9.12 * scale            # 0.359" flange
-    thread_length = 15.01 * scale          # Thread section
-    
-    # Center the drawing
+    # Overall dimensions
+    length = spec['length'] * scale
+    diameter = spec['q_max'] * scale
     half_diameter = diameter / 2
-    
-    # Calculate positions
-    flange_x = 0
-    thread_x = flange_x + flange_width
-    body_x = thread_x + thread_length
-    body_width = total_length - flange_width - thread_length
-    
-    # Flange is slightly larger diameter
-    flange_height = diameter * 1.15
-    half_flange = flange_height / 2
-    
-    # Thread section is slightly smaller
-    thread_height = diameter * 0.9
-    half_thread = thread_height / 2
     
     svg = f'''<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="400" height="400">
-<g id="series_iii_26_size_{shell_size}-drawing-contents-start">
-<!-- Mounting flange -->
-<rect x="{flange_x}" y="{-half_flange}" width="{flange_width}" height="{flange_height}" fill="#A0A0A0" stroke="black" stroke-width="2"/>
-<!-- Threaded section -->
-<rect x="{thread_x}" y="{-half_thread}" width="{thread_length}" height="{thread_height}" fill="#B8B8B8" stroke="black" stroke-width="2"/>
-<!-- Main body -->
-<rect x="{body_x}" y="{-half_diameter}" width="{body_width}" height="{diameter}" fill="#C0C0C0" stroke="black" stroke-width="2"/>
-<!-- Rear coupling nut -->
-<rect x="{total_length}" y="{-half_flange}" width="{flange_width * 0.8}" height="{flange_height}" fill="#A0A0A0" stroke="black" stroke-width="2"/>
+<g id="{part_number}-drawing-contents-start">
+<rect x="0" y="{-half_diameter}" width="{length}" height="{diameter}" fill="#C0C0C0" stroke="black" stroke-width="2"/>
 </g>
-<g id="series_iii_26_size_{shell_size}-drawing-contents-end">
+<g id="{part_number}-drawing-contents-end">
 </g>
 </svg>'''
     
@@ -224,7 +200,6 @@ def main():
     for part_configuration in part_configurations:
         # GENERATE THE PART NUMBER
         part_number = f"D38999_{part_configuration['shell_type']}{part_configuration['finish']}{part_configuration['insert_arrangement']}{part_configuration['contact_type']}{part_configuration['key']}"
-        print(f"Working on {part_number}")
 
         # MAKE THE PART FOLDER
         part_dir = os.path.join(os.getcwd(), part_number)
@@ -238,12 +213,10 @@ def main():
             "rev": REVISION,
             "desc": "",
             "status": "",
-            "library_repo": "",
-            "library_subpath": "",
-            "datestarted": "",
+            "datestarted": DATE_STARTED,
         }
         revision_history_csv_path = os.path.join(
-            part_dir, f"{part_number}-revision_history.csv"
+            part_dir, f"{part_number}-revision_history.tsv"
         )
         rev_history.part_family_append(
             revision_history_content_dict, revision_history_csv_path
@@ -270,10 +243,14 @@ def main():
 
         # GENERATE THE SVG
         if part_configuration.get("shell_type") == "26":
-            svg_content = series_iii_26_connector_svg(attributes.get("shell_size"))
+            svg_content = series_iii_26_connector_svg(part_number, attributes.get("shell_size"))
             svg_path = os.path.join(rev_dir, f"{part_number}-rev{REVISION}-drawing.svg")
             with open(svg_path, "w") as f:
                 f.write(svg_content)
+
+        
+        # RENDER THE PART
+        subprocess.run(['harnice', '-r'], cwd=rev_dir, check=True)
 
 
 if __name__ == "__main__":
